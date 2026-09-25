@@ -5,7 +5,7 @@ kind: Deployment
 metadata:
   name: color-app
 spec:
-  replicas: 10 # <-- scene 2: change to 10
+  replicas: 5 # <-- scene 2: change to 10
   minReadySeconds: 10 # each new pod waits 10s before counting as ready, so the color change is gradual and visible
   progressDeadlineSeconds: 60 # a stuck rollout is reported as failed (ArgoCD "Degraded") after 60s
   strategy:
@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: color-app
-          image: argoproj/rollouts-demo:yellow # <-- scene 1: change blue to yellow / scene 4: typo "yelow"
+          image: argoproj/rollouts-demo:blue # <-- scene 1: change blue to yellow / scene 4: typo "yelow"
           imagePullPolicy: IfNotPresent # use the images preloaded into kind (no internet needed for them)
           ports:
             - containerPort: 8080
