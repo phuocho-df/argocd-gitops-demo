@@ -1,0 +1,5 @@
+# Backup screen recordings of each scene (large, local only)
+recordings/
+# Local planning notes
+plans/
+.DS_Store

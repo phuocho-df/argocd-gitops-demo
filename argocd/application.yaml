@@ -1,0 +1,19 @@
+# Tells ArgoCD: "keep the cluster in sync with the k8s/ folder of this Git repo".
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: color-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/phuocho-df/argocd-gitops-demo.git # public repo, no credentials needed
+    targetRevision: main # branch to follow
+    path: k8s # folder with the manifests
+  destination:
+    server: https://kubernetes.default.svc # this same cluster
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true # delete resources that were removed from Git
+      selfHeal: true # undo manual changes made with kubectl
