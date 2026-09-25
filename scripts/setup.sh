@@ -24,7 +24,7 @@ else
   done
   kind create cluster --config kind-config.yaml
 fi
-kubectl config use-context "kind-$CLUSTER" >/dev/null # make sure kubectl talks to the demo cluster
+kind export kubeconfig --name "$CLUSTER" >/dev/null # (re)create the kubectl login for the cluster and switch to it
 
 # 3. Copy the demo images into the cluster
 scripts/preload-images.sh
@@ -59,10 +59,11 @@ for _ in $(seq 1 60); do
   kubectl get deployment color-app >/dev/null 2>&1 && break
   sleep 2
 done
+kubectl get deployment color-app >/dev/null 2>&1 || { echo "ArgoCD did not create color-app within 2 min. Check the app in the ArgoCD UI (http://localhost:30081)."; exit 1; }
 kubectl rollout status deployment/color-app --timeout=3m
 
 # 8. Show where to go
-PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 --decode)
+PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' 2>/dev/null | base64 --decode || echo '(initial secret not found)')
 echo
 echo "Demo app:  http://localhost:30080"
 echo "ArgoCD UI: http://localhost:30081   (user: admin, password: $PASSWORD)"

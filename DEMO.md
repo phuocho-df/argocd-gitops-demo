@@ -18,10 +18,11 @@ All commands are run from the repo folder.
 **T-10 min**
 
 1. `scripts/reset.sh` must end with `Ready: blue x5`.
+   `git push --dry-run` must succeed without asking for a password (proves you can push on stage).
 2. `curl -s localhost:30080/color` must print `"blue"`.
 3. Open and arrange the screen:
    - **Left:** browser tab `http://localhost:30080` (colored boxes).
-   - **Right:** browser tab `http://localhost:30081/applications/argocd/color-app` (log in as `admin`). App shows **Synced** + **Healthy**.
+   - **Right:** browser tab `http://localhost:30081/applications/argocd/color-app` (log in as `admin`; forgot the password? see "Fallbacks"). App shows **Synced** + **Healthy**.
    - **Bottom:** terminal in the repo folder, and `k8s/app.yaml` open in the editor.
 4. Browser zoom 125%+, terminal font large, notifications off (Do Not Disturb).
 5. Open the backup clips in `recordings/` in a video player, minimized.
@@ -52,13 +53,13 @@ If anything fails: `kubectl get nodes`. If that errors, run `scripts/teardown.sh
    git commit -am "deploy yellow" && git push
    ```
 
-**Say:** "I didn't touch the cluster. I only pushed a commit. ArgoCD checks Git every 30 seconds."
+**Say:** "I didn't touch the cluster. I only pushed a commit. ArgoCD checks Git about every 30 seconds."
 
 **Audience sees**
-- ArgoCD: **OutOfSync** → syncing → a new ReplicaSet appears with new pods (within 30s).
+- ArgoCD: **OutOfSync** → syncing → a new ReplicaSet appears with new pods (usually within 30s, at most about 1 min).
 - Browser: yellow boxes appear **between the blue ones** and gradually take over (about 35s). New pods are added before old ones are removed, so there is no downtime.
 
-**If it doesn't happen within 30s:** click **Refresh** in ArgoCD (top bar). Say: "In production a webhook from GitHub triggers this instantly."
+**If nothing changes within 30s:** click **Refresh ▾ → Hard Refresh** in ArgoCD (the small arrow next to Refresh; plain Refresh may reuse a cached answer). Say: "In production a webhook from GitHub triggers this instantly."
 
 ---
 
@@ -79,7 +80,7 @@ If anything fails: `kubectl get nodes`. If that errors, run `scripts/teardown.sh
 
 **Audience sees:** 5 new pod boxes appear in the ArgoCD tree and turn green (healthy).
 
-**If it doesn't happen within 30s:** click **Refresh**.
+**If nothing changes within 30s:** **Hard Refresh** (as in scene 1).
 
 ---
 
@@ -97,7 +98,7 @@ kubectl scale deployment color-app --replicas=1
 
 **Say:** "Manual changes are undone automatically. Git always wins."
 
-**If it doesn't happen:** click **Refresh**, then **Sync**. Check the app's **App Details → Sync Policy** shows *Self Heal* enabled.
+**If it doesn't happen:** **Hard Refresh**, then **Sync**. Check the app's **App Details → Sync Policy** shows *Self Heal* enabled.
 
 ---
 
@@ -128,9 +129,9 @@ git revert --no-edit HEAD && git push
 
 **Say:** "Rolling back is just undoing the commit in Git. The history shows exactly what broke and who fixed it."
 
-**Audience sees:** within about 30s the broken pods disappear, and the app returns to **Healthy** + **Synced**. The browser stays yellow the whole time.
+**Audience sees:** within about 30s–1 min the broken pods disappear, and the app returns to **Healthy** + **Synced**. The browser stays yellow the whole time.
 
-**If it doesn't happen within 30s:** click **Refresh**.
+**If nothing changes within 30s:** **Hard Refresh** (as in scene 1).
 
 ---
 
@@ -144,11 +145,12 @@ git revert --no-edit HEAD && git push
 
 | Problem | What to do |
 |---|---|
-| Sync seems slow | Click **Refresh** in ArgoCD. Keep talking; the maximum wait is 30s. |
+| Sync seems slow | **Refresh ▾ → Hard Refresh** in ArgoCD. Keep talking; it normally takes under 1 min. |
 | `git push` rejected (someone else pushed) | `git pull --rebase && git push` |
 | Wifi down | Switch to the phone hotspot. If that fails too, play the scene's clip from `recordings/`. |
 | Browser shows an error page | `kubectl get pods`, then reload the page. |
-| Typo in `app.yaml` breaks YAML (ArgoCD shows an error) | Fix the line, then `git commit -am "fix" && git push`. |
+| Typo in `app.yaml` breaks YAML (ArgoCD shows an error) | Fix the line, then `git commit -am "fix" && git push`. (If this happens in scene 4, roll back by setting the image back to `yellow` and pushing, instead of `git revert HEAD`.) |
+| Forgot the ArgoCD password | `kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' \| base64 --decode; echo` |
 | Cluster gone (laptop slept, Docker restarted) | Play the clips; afterwards `scripts/teardown.sh && scripts/setup.sh`. |
 
 ## Optional: edit on GitHub instead of locally

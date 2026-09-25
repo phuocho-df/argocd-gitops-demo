@@ -10,7 +10,7 @@ BASELINE_TAG=demo-start # Git tag that marks the starting version of $APP_FILE
 EXPECTED="argoproj/rollouts-demo:blue 5 5 5 5" # image, wanted, updated, ready, total pods
 
 # 1. Git: restore the app file from the baseline tag and push it
-git checkout -- "$APP_FILE" # drop unsaved edits from a half-finished scene
+git checkout HEAD -- "$APP_FILE" # drop edits (saved or staged) from a half-finished scene
 if ! git diff --quiet || ! git diff --cached --quiet; then
   echo "Other files have uncommitted changes. Commit or discard them, then run again:"; git status --short; exit 1
 fi
@@ -20,13 +20,13 @@ if git diff --cached --quiet; then
   echo "Git is already at the baseline."
 else
   git commit --quiet -m "reset demo to baseline"
-  git push --quiet
-  echo "Pushed the baseline to GitHub."
 fi
+git push --quiet # always push: also retries a push that failed last time (does nothing if up to date)
 
-# 2. Cluster: make sure ArgoCD knows the app, and make it read Git right now
+# 2. Cluster: make sure the images and the app are there, and make ArgoCD read Git right now
 kind get clusters 2>/dev/null | grep -x "$CLUSTER" >/dev/null || { echo "Cluster '$CLUSTER' not found. Run scripts/setup.sh first."; exit 1; }
 kubectl config use-context "kind-$CLUSTER" >/dev/null
+scripts/preload-images.sh >/dev/null # quick no-op when the images are already in the node
 kubectl apply -f argocd/application.yaml >/dev/null
 kubectl -n argocd annotate application color-app argocd.argoproj.io/refresh=hard --overwrite >/dev/null
 
@@ -39,5 +39,6 @@ for _ in $(seq 1 90); do
   sleep 2
 done
 [ "$state" = "$EXPECTED" ] || { echo "Timed out. Current state (image wanted updated ready total): $state"; exit 1; }
+kubectl rollout status deployment/color-app --timeout=2m # double-check: the status above can briefly be stale
 
 echo "Ready: blue x5. App: http://localhost:30080  ArgoCD: http://localhost:30081"

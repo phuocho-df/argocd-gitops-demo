@@ -3,3 +3,5 @@ recordings/
 # Local planning notes
 plans/
 .DS_Store
+# Local AI assistant settings
+.claude/
