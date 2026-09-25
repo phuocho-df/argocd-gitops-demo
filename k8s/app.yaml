@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: color-app
-          image: argoproj/rollouts-demo:yelow # <-- scene 1: change blue to yellow / scene 4: typo "yelow"
+          image: argoproj/rollouts-demo:yellow # <-- scene 1: change blue to yellow / scene 4: typo "yelow"
           imagePullPolicy: IfNotPresent # use the images preloaded into kind (no internet needed for them)
           ports:
             - containerPort: 8080
