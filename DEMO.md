@@ -9,6 +9,13 @@ All commands are run from the repo folder.
 
 ## Pre-flight
 
+**Once, during your own practice run: record the backup clips**
+
+1. Arrange the screen exactly as on stage (see T-10 below), run `scripts/reset.sh`.
+2. For each scene: press **Cmd+Shift+5** → *Record Entire Screen* → do the scene → stop recording (menu-bar ■).
+3. Save them as `recordings/scene-1-deploy.mov`, `scene-2-scale.mov`, `scene-3-self-heal.mov`, `scene-4-rollback.mov` (the folder is not pushed to Git).
+4. Watch each clip once to check it plays and shows the color change / pods. Then `scripts/reset.sh`.
+
 **The day before / T-60 min**
 
 1. Start Docker Desktop.
